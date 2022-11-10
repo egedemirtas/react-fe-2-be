@@ -6,96 +6,58 @@ import Alert from './components/layout/Alert';
 import { About } from './components/pages/About';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import './App.css';
-import React from 'react';
+import React, { useState } from 'react';
+import GithubState from './context/github/GithubState';
 
-class App extends React.Component {
+const App = () => {
 
-  state = {
-    users: [],
-    user: {},
-    loading: false,
-    alert: null
-  }
+  const [user, setUser] = useState({});
+  const [loading, setLoading] = useState(false);
+  const [repos, setRepos] = useState([]);
 
-  async componentDidMount() {
-    this.setState({ loading: true });
-    const response = await fetch(`https://api.github.com/users?client_id=${process.env.REACT_APP_GITHUB_CLIENT_ID}&client_secret=${process.env.REACT_APP_GITHUB_CLIENT_SECRET}`);
-    const data = await response.json();
-    this.setState({ users: data, loading: false })
-  }
-
-  searchUsers = async text => {
-    this.setState({ loading: true });
-    const response = await fetch(`https://api.github.com/search/users?q=${text}&client_id=${process.env.REACT_APP_GITHUB_CLIENT_ID}&client_secret=${process.env.REACT_APP_GITHUB_CLIENT_SECRET}`);
-    const data = await response.json();
-    if (!data.items) {
-      return;
-    }
-    this.setState({ users: data.items, loading: false })
-  }
-
-  getUser = async (username) => {
-    this.setState({ loading: true });
+  const getUser = async (username) => {
+    setLoading(true);
     const response = await fetch(`https://api.github.com/users/${username}?client_id=${process.env.REACT_APP_GITHUB_CLIENT_ID}&client_secret=${process.env.REACT_APP_GITHUB_CLIENT_SECRET}`);
     const data = await response.json();
     if (!data) {
       return;
     }
-    this.setState({ user: data, loading: false })
+    setUser(data);
+    setLoading(false);
   }
 
-  clearUsers = async text => {
-    this.setState({ users: [], loading: false })
+  const getUserRepos = async (username) => {
+    setLoading(true);
+    const response = await fetch(`https://api.github.com/users/${username}/repos?per_page=5&sort=created:asc&client_id=${process.env.REACT_APP_GITHUB_CLIENT_ID}&client_secret=${process.env.REACT_APP_GITHUB_CLIENT_SECRET}`);
+    const data = await response.json();
+    if (!data) {
+      return;
+    }
+    setRepos(data);
+    setLoading(false);
   }
 
-  setAlert = (alertText) => {
-    this.setState({ alert: alertText, loading: false })
-    setTimeout(() => this.setState({ alert: null }), 5000)
-  }
-
-  render() {
-    return (
+  return (
+    <GithubState>
       <BrowserRouter>
         <div className='App'>
           <Navbar title='Github Finder' icon='fa-sharp fa-solid fa-code-branch' />
           <Routes>
             <Route path='/' element={
               <div className='container'>
-                <Search searchUsers={this.searchUsers} clearUsers={this.clearUsers} setAlert={this.setAlert} />
-                <Alert alert={this.state.alert} />
-                <Users loading={this.state.loading} users={this.state.users} />
+                <Search />
+                <Alert />
+                <Users />
               </div>
             } />
-            <Route path='/about' element={<About/>}></Route>
-            <Route path='/user/:login' element={<User user={this.state.user} loading={this.state.loading} getUser={this.getUser}/>}></Route>
+            <Route path='/about' element={<About />}></Route>
+            <Route path='/user/:login' element={<User user={user} loading={loading} repos={repos} getUser={getUser} getUserRepos={getUserRepos} />}></Route>
           </Routes>
 
         </div>
       </BrowserRouter>
-    )
-  }
+    </GithubState>
+  )
 }
 
-/*
-function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
-}
-*/
 export default App;
