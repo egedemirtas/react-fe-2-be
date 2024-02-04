@@ -1,8 +1,6 @@
-import React, { useContext, useState } from 'react'
-import GithubContext from '../../context/github/githubContext';
+import React, { useState } from 'react'
 
-const Search = () => {
-    const githubContext = useContext(GithubContext)
+const Search = (props) => {
 
     // state and the function to change that state (this is for singular state usage). And then the default value for the state
     const [text, setText] = useState('');
@@ -17,9 +15,9 @@ const Search = () => {
     const onSubmit = (e) => {
         e.preventDefault();
         if (!text) {
-            githubContext.showAlert();
+            props.showAlert();
         } else {
-            githubContext.searchUsers(text)
+            props.searchUsers(text)
             setText(e.target.value)
         }
 
@@ -38,7 +36,7 @@ const Search = () => {
                 <input type="text" name="text" placeholder="Search Users..." value={text || ''} onChange={onChange} ></input>
                 <input type="submit" value="Search" className="btn btn-success btn-block" style={{ margin: '0.1rem 0' }}></input>
             </form>
-            <button className="btn btn-dark btn-block" onClick={githubContext.clearUsers}>Clear</button>
+            <button className="btn btn-dark btn-block" onClick={props.clearUsers}>Clear</button>
         </div>
     )
 
